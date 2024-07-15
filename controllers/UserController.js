@@ -4,6 +4,7 @@ import createUserToken from "../helpers/create-user-token.js";
 import checkIfEmailExist from "../helpers/check-if-email-exist.js";
 import getToken from "../helpers/get-token.js";
 import jwt from "jsonwebtoken";
+import getUserByToken from "../helpers/get-user-by-token.js";
 
 export default {
   register: async (req, res) => {
@@ -103,5 +104,68 @@ export default {
     }
 
     await res.status(200).send(currentUser);
+  },
+
+  getUserById: async (req, res) => {
+    const id = req.params.id;
+    id;
+
+    const user = await User.findById(id).select("-password");
+
+    if (!user) {
+      res.status(422).json({ message: "user not found" });
+      return;
+    }
+    res.status(200).json(user);
+  },
+
+  editUser: async (req, res) => {
+    const id = req.params.id;
+
+    const user = await getUserByToken(token);
+    const token = getToken(req);
+    const { name, email, phone, password, confirmpassword } = req.body;
+    let image = "";
+
+    if (!name) {
+      res.status(422).json({ message: "O nome é obrigatorio" });
+      return;
+    }
+    if (!email) {
+      res.status(422).json({ message: "O email é obrigatorio" });
+      return;
+    }
+
+    const userExists = await checkIfEmailExist(email);
+
+    if (user.email !== email && userExists) {
+      res.status(422).json({ message: "invalid user" });
+      return;
+    }
+
+    user.email = email;
+
+    if (!phone) {
+      res.status(422).json({ message: "O telefone é obrigatorio" });
+      return;
+    }
+    if (!password) {
+      res.status(422).json({ message: "O password é obrigatorio" });
+      return;
+    }
+    if (!confirmpassword) {
+      res
+        .status(422)
+        .json({ message: "A confirmação de password  é obrigatorio" });
+      return;
+    }
+    if (password !== confirmpassword) {
+      res.status(422).json({ message: "Passwords não estão iguais!" });
+    }
+
+    if (!user) {
+      res.status(422).json({ message: "user not foun!" });
+      return;
+    }
   },
 };
