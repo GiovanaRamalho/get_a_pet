@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import getToken from "./get-token";
+import getToken from "./get-token.js";
 
 const verifyToken = (req, res, next) => {
   if (!req.headers.authorization) {
@@ -22,3 +22,5 @@ const verifyToken = (req, res, next) => {
     return res.status(401).json({ message: "invalid token!" });
   }
 };
+
+export default verifyToken;
