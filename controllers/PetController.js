@@ -1,6 +1,7 @@
 import Pet from "../models/Pet.js";
 import getToken from "../helpers/get-token.js";
 import getUserByToken from "../helpers/get-user-by-token.js";
+import { isValidObjectId } from "mongoose";
 
 export default {
   create: async (req, res) => {
@@ -73,5 +74,31 @@ export default {
     const pets = await Pet.find({ "user._id": user._id }).sort("+createdAt");
 
     res.status(200).json({ pets });
+  },
+
+  getAllUsersAdoptions: async (req, res) => {
+    const token = getToken(req);
+    const user = await getUserByToken(token);
+
+    const pets = await Pet.find({ "adopter._id": adopter._id }).sort(
+      "+createdAt"
+    );
+  },
+
+  getPetById: async (req, res) => {
+    const id = req.params.id;
+
+    if (!isValidObjectId(id)) {
+      res.status(422).json({ message: "ID invalid" });
+      return;
+    }
+
+    const pet = await Pet.findOne({ _id: id });
+
+    if (!pet) {
+      res.status(404).json({ message: "pet not found!" });
+    }
+
+    res.status(200).json({ pet: pet });
   },
 };
