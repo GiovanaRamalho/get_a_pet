@@ -139,6 +139,7 @@ export default {
 
     if (!pet) {
       res.status(404).json({ message: "pet not found!" });
+      return;
     }
 
     const token = getToken(req);
@@ -190,5 +191,68 @@ export default {
     await Pet.findByIdAndUpdate(id, updatedData);
 
     res.status(200).json({ message: "pet updated successfully" });
+  },
+
+  schedule: async (req, res) => {
+    const id = req.params.id;
+
+    const pet = await Pet.findOne({ _id: id });
+
+    if (!pet) {
+      res.status(404).json({ message: "pet not found!" });
+      return;
+    }
+
+    if (pet.user._id.equals(user._id)) {
+      res
+        .status(422)
+        .json({ message: "you cannot schedule a visit for your own pet" });
+      return;
+    }
+
+    if (pet.adopter) {
+      if (pet.adopter._id.equals(user._id)) {
+        res
+          .status(422)
+          .json({ message: "you scheduled a visit for this pet." });
+        return;
+      }
+    }
+    pet.adopter = {
+      _id: user.id,
+      name: user.name,
+      image: user.image,
+    };
+
+    await Pet.findByIdAndUpdate(id, pet);
+
+    res.status(200).json({
+      message: `the visit has been scheduled successfully, please contact ${pet.user.phone}`,
+    });
+  },
+
+  concludeAdoption: async (req, res) => {
+    const id = req.params.id;
+
+    const pet = await Pet.findOne({ _id: id });
+
+    if (!pet) {
+      res.status(404).json({ message: "pet not found!" });
+      return;
+    }
+
+    const token = getToken(req);
+    const user = await getUserByToken(token);
+
+    if (pet.user._id.toString() !== user._id.toString()) {
+      res.status(422).json({ message: "We had a problem with your request" });
+      return;
+    }
+
+    pet.available = false;
+
+    await Pet.findByIdAndUpdate(id, pet);
+
+    res.status(200).json({ message: "you successfully adopted the pet" });
   },
 };

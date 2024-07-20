@@ -10,6 +10,8 @@ router.get("/mypets", verifyToken, PetController.getAllUserPets);
 router.get("/myadoptions", verifyToken, PetController.getAllUsersAdoptions);
 router.get("/:id", PetController.getPetById);
 router.delete("delete/:id", verifyToken, PetController.removePetById);
+router.patch("/schedule/:id", verifyToken, PetController.schedule);
+router.patch("/conclude/:id", verifyToken, PetController.concludeAdoption);
 
 router.post(
   "/create",
